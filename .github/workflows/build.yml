@@ -29,14 +29,14 @@ jobs:
 
       - name: Install dependencies and build web app
         run: |
-          npm install
+          npm install --legacy-peer-deps
           npm run build
 
       - name: Package Android APK with Capacitor
         run: |
-          npm install @capacitor/core @capacitor/cli @capacitor/android
+          npm install --legacy-peer-deps @capacitor/core @capacitor/cli @capacitor/android
           npx cap init "CONNECT TV" "com.azsat.connecttv" --web-dir dist
-          npx cap add android
+          npx cap add android || true
           mkdir -p android/app/src/main/res/drawable
           cp public/pwa-512x512.png android/app/src/main/res/drawable/app_icon.png || true
           cd android
