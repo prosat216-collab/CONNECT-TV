@@ -35,8 +35,16 @@ jobs:
       - name: Package Android APK with Capacitor
         run: |
           npm install --legacy-peer-deps @capacitor/core @capacitor/cli @capacitor/android
-          npx cap init "CONNECT TV" "com.azsat.connecttv" --web-dir dist
-          npx cap add android || true
+          rm -f capacitor.config.ts capacitor.config.js
+          cat << 'EOF' > capacitor.config.json
+          {
+            "appId": "com.azsat.connecttv",
+            "appName": "CONNECT TV",
+            "webDir": "dist"
+          }
+          EOF
+          npx cap add android
+          npx cap sync android
           mkdir -p android/app/src/main/res/drawable
           cp public/pwa-512x512.png android/app/src/main/res/drawable/app_icon.png || true
           cd android
