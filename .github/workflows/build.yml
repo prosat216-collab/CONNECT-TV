@@ -1,0 +1,64 @@
+name: Build Android APK (CONNECT TV)
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Install dependencies and build web app
+        run: |
+          npm install
+          npm run build
+
+      - name: Package Android APK with Capacitor
+        run: |
+          npm install @capacitor/core @capacitor/cli @capacitor/android
+          npx cap init "CONNECT TV" "com.azsat.connecttv" --web-dir dist
+          npx cap add android
+          mkdir -p android/app/src/main/res/drawable
+          cp public/pwa-512x512.png android/app/src/main/res/drawable/app_icon.png || true
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Prepare app.apk
+        run: |
+          cp android/app/build/outputs/apk/debug/app-debug.apk app.apk
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: connect-tv-apk
+          path: app.apk
+
+      - name: Publish Release with app.apk
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.8
+          name: "CONNECT TV v1.8 APK"
+          body: "ملف التثبيت الرسمي لتطبيق CONNECT TV لأجهزة Android TV و Smart Box والهواتف."
+          files: app.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
